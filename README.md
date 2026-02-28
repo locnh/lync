@@ -5,8 +5,9 @@ A lightweight macOS menu bar utility that intercepts every link you click and ro
 Inspired by [Velja](https://sindresorhus.com/velja).
 
 ![macOS](https://img.shields.io/badge/macOS-14.0%2B-blue)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange)
+![Swift](https://img.shields.io/badge/Swift-5.10-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-1.0.0-purple)
 
 ---
 
@@ -18,6 +19,7 @@ Inspired by [Velja](https://sindresorhus.com/velja).
 - **Privacy Shield** — strips `utm_*`, `fbclid`, `gclid`, and 25+ other tracking parameters before opening
 - **Global Fallback** — choose which browser handles URLs that match no rule
 - **Drag-to-reorder rules** — priority is evaluated top to bottom; first match wins
+- **macOS Handoff** — URLs handed off from iPhone/iPad pass through the same routing engine
 - **Menu bar only** — no Dock icon, lives quietly in your menu bar
 
 ---
@@ -25,7 +27,7 @@ Inspired by [Velja](https://sindresorhus.com/velja).
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
-- Xcode 15 or later
+- Xcode 14.0 or later
 
 ---
 
@@ -34,7 +36,7 @@ Inspired by [Velja](https://sindresorhus.com/velja).
 ### 1. Clone and open
 
 ```bash
-git clone https://github.com/yourname/Lync.git
+git clone https://github.com/locnh/lync.git
 cd Lync
 open Lync.xcodeproj
 ```
@@ -51,12 +53,6 @@ open ~/Library/Developer/Xcode/DerivedData/Lync-*/Build/Products/Debug/Lync.app
 ### 3. Set as Default Browser
 
 Go to **System Settings → Desktop & Dock → Default web browser → Lync**.
-
-Or run this once from the terminal after the app is running:
-
-```bash
-swiftc -framework CoreServices -framework Foundation set_default.swift -o /tmp/setbrowser
-```
 
 ---
 
@@ -75,16 +71,16 @@ Lync/
     │   ├── Rule.swift          # Routing rule model (Codable)
     │   └── Browser.swift       # Installed browser model
     ├── Services/
-    │   ├── URLRouter.swift     # Core routing engine + UserDefaults persistence
-    │   ├── BrowserDiscovery.swift  # Finds browsers via LaunchServices
-    │   └── URLCleaner.swift    # Strips tracking query parameters
+    │   ├── URLRouter.swift         # Core routing engine + UserDefaults persistence
+    │   ├── BrowserDiscovery.swift  # Finds browsers via NSWorkspace
+    │   └── URLCleaner.swift        # Strips tracking query parameters
     ├── ViewModels/
     │   └── RulesViewModel.swift
     └── Views/
         ├── MenuBarView.swift       # Popover with stats & quick toggles
-        ├── SettingsView.swift      # Tabbed settings window
+        ├── SettingsView.swift      # Tabbed settings window (Rules, General, Setup Guide, About)
         ├── RulesView.swift         # Rule list with reorder & delete
-        ├── RuleEditorView.swift    # Add / edit rule sheet
+        ├── RuleEditorView.swift    # Inline add / edit rule editor
         └── OnboardingView.swift    # First-launch setup guide
 ```
 
@@ -103,22 +99,22 @@ Lync/
 
 ## Adding Rules
 
-| Field | Description |
-|---|---|
-| **Name** | Human-readable label for the rule |
-| **Match Type** | Wildcard, Regex, or Contains |
-| **Pattern** | The URL pattern to match against |
-| **Browser** | Target browser (auto-discovered from your system) |
-| **Profile** | Chromium profile directory name (e.g. `Default`, `Profile 1`) |
+| Field          | Description                                                   |
+| -------------- | ------------------------------------------------------------- |
+| **Name**       | Human-readable label for the rule                             |
+| **Match Type** | Wildcard, Regex, or Contains                                  |
+| **Pattern**    | The URL pattern to match against                              |
+| **Browser**    | Target browser (auto-discovered from your system)             |
+| **Profile**    | Chromium profile directory name (e.g. `Default`, `Profile 1`) |
 
 ### Pattern examples
 
-| Type | Pattern | Matches |
-|---|---|---|
-| Wildcard | `*.github.com/*` | Any GitHub URL |
-| Wildcard | `meet.google.com/*` | Google Meet links |
-| Regex | `https://(www\.)?notion\.so/.*` | Notion pages |
-| Contains | `zoom.us/j/` | Zoom meeting links |
+| Type     | Pattern                         | Matches            |
+| -------- | ------------------------------- | ------------------ |
+| Wildcard | `*.github.com/*`                | Any GitHub URL     |
+| Wildcard | `meet.google.com/*`             | Google Meet links  |
+| Regex    | `https://(www\.)?notion\.so/.*` | Notion pages       |
+| Contains | `zoom.us/j/`                    | Zoom meeting links |
 
 ---
 
@@ -151,17 +147,26 @@ When enabled, Lync removes the following parameter families from every URL befor
 
 Lync follows **MVVM**:
 
-| Layer | Responsibility |
-|---|---|
-| **Models** | `Rule`, `Browser` — pure data, `Codable` |
-| **Services** | `URLRouter`, `BrowserDiscovery`, `URLCleaner` — business logic |
-| **ViewModels** | `RulesViewModel` — bridges services to views |
-| **Views** | SwiftUI views — purely declarative, no logic |
+| Layer          | Responsibility                                                 |
+| -------------- | -------------------------------------------------------------- |
+| **Models**     | `Rule`, `Browser` — pure data, `Codable`                       |
+| **Services**   | `URLRouter`, `BrowserDiscovery`, `URLCleaner` — business logic |
+| **ViewModels** | `RulesViewModel` — bridges services to views                   |
+| **Views**      | SwiftUI views — purely declarative, no logic                   |
 
 State is held in `URLRouter.shared` (an `ObservableObject` singleton) and persisted to `UserDefaults` as JSON.
 
 ---
 
+## Credits
+
+* Prompt: Gemini
+* Icon design: Grok
+* Code and document: Claude Sonnet
+* Publisher: locnh
+
+---
+
 ## License
 
-[MIT](LICENSE) © 2026 Huu Loc Nguyen
+[MIT](LICENSE) © 2026 locnh
